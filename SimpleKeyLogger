@@ -1,0 +1,44 @@
+from pynput import keyboard
+import datetime
+
+# Global variable to track when the script started
+start_time = datetime.datetime.now()
+
+def log_keystroke(key, action):
+    """
+    Logs keystrokes and their corresponding actions (press/release) to a file.
+    Special keys are logged with their names.
+    """
+    with open("checkkeys.csv", 'a') as log_file:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        if hasattr(key, 'char'):
+            log_file.write(f"{timestamp},{action},{key.char}\n")
+        else:
+            key_name = str(key).replace("'", "")
+            log_file.write(f"{timestamp},{action},{key_name}\n")
+
+def on_press(key):
+    log_keystroke(key, "pressed")
+
+def on_release(key):
+    log_keystroke(key, "released")
+    if key == keyboard.Key.esc:  # Example: Terminate the program on Esc key
+        return False
+
+def main():
+    # Start listening for key events
+    with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+        print("Logging keystrokes... Press 'Esc' to exit.")
+        listener.join()
+
+if __name__ == "__main__":
+    # Initialize the log file with headers
+    with open("checkkeys.csv", 'w') as log_file:
+        log_file.write("Timestamp,Action,Key\n")
+
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nProgram terminated manually.")
+    finally:
+        print("Logging stopped.")
